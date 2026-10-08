@@ -119,3 +119,15 @@ Use the P, PD, PID, and FF + PID preset buttons before fine-tuning individual
 sliders. The live shoulder-position chart makes lag and overshoot visible, and
 the measurement window clears after each settings change so old behavior does
 not contaminate the new comparison.
+
+## Painting challenge
+
+```bash
+uv run python .venv/bin/mjpython -m so101_controls.painting_arcade
+```
+
+The painting lab converts a circle, Lemniscate, or square on a vertical canvas
+into joint references using online damped-least-squares IK. The selected outer
+controller then tracks those joint references through MuJoCo's internal servo
+loops. The browser shows the desired guide and persistent painted stroke, plus
+Cartesian path error and whole-arm force saturation.
