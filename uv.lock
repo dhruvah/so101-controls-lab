@@ -564,6 +564,18 @@ wheels = [
 ]
 
 [[package]]
+name = "mujoco-menagerie"
+version = "2026.10.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mujoco" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1f/4f/b1b5cf64c856ba1821afefb1b8c1e99945b62ed113c7fea99a12e5b7efbe/mujoco_menagerie-2026.10.1.tar.gz", hash = "sha256:ed5b6df3ac797f1b2f5e04f084127c246bd32530df836eb43fe9678ab89640a9", size = 24567, upload-time = "2026-10-07T20:12:52.281Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c2/39/dbc4e37e8ea274864ea8692277dc7b1845fc138bf20e41cb3d1a366348bb/mujoco_menagerie-2026.10.1-py3-none-any.whl", hash = "sha256:535d53b76f26514abd178368063dc526a78858b28ff0adc70c89ddb91e33cbf8", size = 29840, upload-time = "2026-10-07T20:12:51.187Z" },
+]
+
+[[package]]
 name = "numpy"
 version = "2.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -895,6 +907,7 @@ source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
     { name = "mujoco" },
+    { name = "mujoco-menagerie" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
@@ -908,6 +921,7 @@ dev = [
 requires-dist = [
     { name = "matplotlib", specifier = ">=3.8" },
     { name = "mujoco", specifier = ">=3.2" },
+    { name = "mujoco-menagerie", specifier = ">=2026.10.1" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
 ]

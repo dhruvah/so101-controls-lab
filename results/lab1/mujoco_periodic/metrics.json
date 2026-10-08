@@ -1,0 +1,38 @@
+[
+  {
+    "controller": "P",
+    "rms_error_rad": 0.047801543850048915,
+    "max_error_rad": 0.06761816354639316,
+    "final_error_rad": -0.021953402736542005,
+    "command_smoothness_rms": 0.00803920055437916,
+    "outer_velocity_saturation_fraction": 0.0,
+    "inner_force_saturation_fraction": 0.165
+  },
+  {
+    "controller": "PD",
+    "rms_error_rad": 0.0318794502443255,
+    "max_error_rad": 0.046234626377772536,
+    "final_error_rad": -0.012879456154830438,
+    "command_smoothness_rms": 0.013755813074703797,
+    "outer_velocity_saturation_fraction": 0.0,
+    "inner_force_saturation_fraction": 0.1675
+  },
+  {
+    "controller": "PID",
+    "rms_error_rad": 0.03837394693008428,
+    "max_error_rad": 0.06259756059319677,
+    "final_error_rad": 0.005192570221602466,
+    "command_smoothness_rms": 0.02513940707617005,
+    "outer_velocity_saturation_fraction": 0.0,
+    "inner_force_saturation_fraction": 0.31
+  },
+  {
+    "controller": "FF+PID",
+    "rms_error_rad": 0.014637293483866378,
+    "max_error_rad": 0.021650813520590173,
+    "final_error_rad": 0.00184613829868141,
+    "command_smoothness_rms": 0.015385654803383116,
+    "outer_velocity_saturation_fraction": 0.0,
+    "inner_force_saturation_fraction": 0.2375
+  }
+]

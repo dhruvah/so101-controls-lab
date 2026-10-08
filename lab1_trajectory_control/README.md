@@ -44,6 +44,7 @@ first complete result.
 uv sync --extra dev
 uv run python -m so101_controls.lab1 --trajectory out-and-back
 uv run python -m so101_controls.lab1 --trajectory periodic
+uv run python -m so101_controls.lab1_mujoco
 ```
 
 The first experiment deliberately uses a reduced-order joint model with finite
@@ -64,3 +65,31 @@ gains are optimal. It shows that a known desired velocity can provide most of
 the motion command, leaving feedback to correct delay, load, and model error.
 The untuned integral gain also produces visible overshoot and slow unwinding,
 which will be the first tuning exercise.
+
+## Complete MuJoCo arm
+
+`lab1_mujoco` runs the same controller comparison on Google DeepMind's
+MuJoCo Menagerie SO-101. The outer controller produces a velocity command,
+which is integrated into the position target accepted by the model's internal
+joint servo. This nested structure mirrors the interface of a smart-servo arm:
+
+```text
+trajectory -> outer P/PD/PID -> position target -> internal servo -> mechanism
+```
+
+The shoulder-lift joint repeatedly moves from -1.2 to -0.7 rad while the full
+arm experiences gravity, coupled rigid-body motion, force limits, and joint
+friction. The other joints hold a fixed posture.
+
+| Controller | RMS error | Maximum error | Inner force saturation |
+|---|---:|---:|---:|
+| P | 47.8 mrad | 67.6 mrad | 16.5% |
+| PD | 31.9 mrad | 46.2 mrad | 16.8% |
+| PID | 38.4 mrad | 62.6 mrad | 31.0% |
+| Feedforward + PID | **14.6 mrad** | **21.7 mrad** | 23.8% |
+
+Feedforward + PID tracks best, but it is not free: it commands earlier and
+uses the shoulder's available force aggressively. The untuned integral term
+both tracks worse than PD and spends the most time at the force limit. This is
+why controller comparisons must include actuator effort and saturation rather
+than tracking error alone.
