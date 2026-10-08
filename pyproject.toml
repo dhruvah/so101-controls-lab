@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "so101-controls-lab"
+version = "0.1.0"
+description = "Small, reproducible control-system experiments for the SO-101 robot arm"
+requires-python = ">=3.11"
+dependencies = [
+  "matplotlib>=3.8",
+  "mujoco>=3.2",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
