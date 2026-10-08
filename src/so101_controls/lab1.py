@@ -21,7 +21,7 @@ CONTROLLERS = {
 }
 
 
-def reference(time):
+def out_and_back_reference(time):
     if time < 2.0:
         return quintic_step(time, 2.0, 0.0, 0.8)
     if time < 3.0:
@@ -31,13 +31,21 @@ def reference(time):
     return 0.0, 0.0
 
 
-def run_controller(name, gains, duration=6.0, dt=0.005):
+def periodic_reference(time, amplitude=0.6, frequency=0.4):
+    """Smooth periodic motion starting from rest at zero position."""
+    omega = 2.0 * np.pi * frequency
+    position = 0.5 * amplitude * (1.0 - np.cos(omega * time))
+    velocity = 0.5 * amplitude * omega * np.sin(omega * time)
+    return position, velocity
+
+
+def run_controller(name, gains, reference_function=out_and_back_reference, duration=6.0, dt=0.005):
     plant = JointPlant(dt=dt)
     controller = PIDController(**gains, output_limit=plant.velocity_limit)
     records = []
     previous_command = 0.0
     for time in np.arange(0.0, duration, dt):
-        desired_position, desired_velocity = reference(time)
+        desired_position, desired_velocity = reference_function(time)
         error = desired_position - plant.position
         error_rate = desired_velocity - plant.velocity
         raw_command = controller.update(error, error_rate, desired_velocity, dt)
@@ -62,14 +70,23 @@ def run_controller(name, gains, duration=6.0, dt=0.005):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=Path("results/lab1"))
+    parser.add_argument("--trajectory", choices=("out-and-back", "periodic"), default="out-and-back")
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+    reference_function = (
+        out_and_back_reference if args.trajectory == "out-and-back" else periodic_reference
+    )
+    duration = 6.0 if args.trajectory == "out-and-back" else 7.5
+    if args.output is None:
+        args.output = Path("results/lab1") / args.trajectory
     args.output.mkdir(parents=True, exist_ok=True)
 
     all_results = {}
     metrics = []
     for name, gains in CONTROLLERS.items():
-        values, summary = run_controller(name, gains)
+        values, summary = run_controller(
+            name, gains, reference_function=reference_function, duration=duration
+        )
         all_results[name] = values
         metrics.append(summary)
         filename = name.lower().replace("+", "_plus_") + ".csv"
@@ -94,7 +111,7 @@ def main():
     for axis in axes:
         axis.grid(alpha=0.3)
         axis.legend()
-    figure.suptitle("SO-101 joint controller comparison")
+    figure.suptitle(f"SO-101 joint controller comparison: {args.trajectory}")
     figure.tight_layout()
     figure.savefig(args.output / "controller_comparison.png", dpi=180)
     plt.close(figure)

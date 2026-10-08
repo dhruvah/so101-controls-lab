@@ -42,7 +42,8 @@ first complete result.
 
 ```bash
 uv sync --extra dev
-uv run python -m so101_controls.lab1
+uv run python -m so101_controls.lab1 --trajectory out-and-back
+uv run python -m so101_controls.lab1 --trajectory periodic
 ```
 
 The first experiment deliberately uses a reduced-order joint model with finite
