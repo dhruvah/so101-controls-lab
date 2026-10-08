@@ -93,3 +93,25 @@ uses the shoulder's available force aggressively. The untuned integral term
 both tracks worse than PD and spends the most time at the force limit. This is
 why controller comparisons must include actuator effort and saturation rather
 than tracking error alone.
+
+## Controls Arcade
+
+The interactive viewer exposes the controller gains, trajectory speed, and an
+external disturbance while the simulation runs. Green markers show the desired
+gripper path and blue markers show the actual path.
+
+On macOS, MuJoCo's passive viewer must run through `mjpython`:
+
+```bash
+uv run python .venv/bin/mjpython -m so101_controls.controls_arcade
+```
+
+Keyboard controls:
+
+- `[` / `]`: decrease / increase P gain
+- `;` / `'`: decrease / increase D gain
+- `,` / `.`: decrease / increase I gain
+- `-` / `=`: decrease / increase feedforward
+- `1` / `2`: slow down / speed up the trajectory
+- `Space`: apply a brief force to the gripper
+- `R`: reset the robot and metrics
