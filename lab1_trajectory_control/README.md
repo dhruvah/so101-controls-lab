@@ -97,8 +97,10 @@ than tracking error alone.
 ## Controls Arcade
 
 The interactive viewer exposes the controller gains, trajectory speed, and an
-external disturbance while the simulation runs. Green markers show the desired
-gripper path and blue markers show the actual path.
+external disturbance while the simulation runs. A browser control panel opens
+next to MuJoCo with sliders, buttons, live metrics, and a trajectory selector.
+Green markers show the desired gripper path and blue markers show the actual
+path.
 
 On macOS, MuJoCo's passive viewer must run through `mjpython`:
 
@@ -108,10 +110,7 @@ uv run python .venv/bin/mjpython -m so101_controls.controls_arcade
 
 Keyboard controls:
 
-- `[` / `]`: decrease / increase P gain
-- `;` / `'`: decrease / increase D gain
-- `,` / `.`: decrease / increase I gain
-- `-` / `=`: decrease / increase feedforward
-- `1` / `2`: slow down / speed up the trajectory
-- `Space`: apply a brief force to the gripper
-- `R`: reset the robot and metrics
+The GUI offers periodic, step-sequence, and frequency-sweep trajectories. The
+step sequence exposes overshoot and settling behavior. The frequency sweep
+starts slowly and continuously increases its frequency, revealing where the
+closed-loop system can no longer track without large phase lag and saturation.
