@@ -1,0 +1,34 @@
+[
+  {
+    "controller": "P",
+    "rms_error_rad": 0.07797354797241483,
+    "max_error_rad": 0.16137616465488064,
+    "final_error_rad": 0.012751676307670828,
+    "command_smoothness_rms": 0.0034821077459327512,
+    "saturation_fraction": 0.0
+  },
+  {
+    "controller": "PD",
+    "rms_error_rad": 0.06414805109301061,
+    "max_error_rad": 0.13246459380584552,
+    "final_error_rad": 0.010659326070393773,
+    "command_smoothness_rms": 0.0034361976716851986,
+    "saturation_fraction": 0.0
+  },
+  {
+    "controller": "PID",
+    "rms_error_rad": 0.07380882282377674,
+    "max_error_rad": 0.137903599699151,
+    "final_error_rad": 0.03352833305217078,
+    "command_smoothness_rms": 0.0036999040474018784,
+    "saturation_fraction": 0.0
+  },
+  {
+    "controller": "FF+PID",
+    "rms_error_rad": 0.015393462522603162,
+    "max_error_rad": 0.03111153381010151,
+    "final_error_rad": -0.00021573953325121665,
+    "command_smoothness_rms": 0.004073224607573067,
+    "saturation_fraction": 0.0
+  }
+]

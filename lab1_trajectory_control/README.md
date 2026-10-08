@@ -37,3 +37,29 @@ generate the comparison plot and conclusions.
 
 Hardware deployment is a separate follow-up and is not required for this lab's
 first complete result.
+
+## Run the first experiment
+
+```bash
+uv sync --extra dev
+uv run python -m so101_controls.lab1
+```
+
+The first experiment deliberately uses a reduced-order joint model with finite
+bandwidth, 30 ms command delay, velocity saturation, and a constant load bias.
+This isolates feedback behavior before we add full-arm kinematics and contact.
+
+## Preliminary result
+
+| Controller | RMS error | Maximum error | Final error |
+|---|---:|---:|---:|
+| P | 78.0 mrad | 161.4 mrad | 12.8 mrad |
+| PD | 64.1 mrad | 132.5 mrad | 10.7 mrad |
+| PID | 73.8 mrad | 137.9 mrad | 33.5 mrad |
+| Feedforward + PID | **15.4 mrad** | **31.1 mrad** | **-0.2 mrad** |
+
+The result is not a claim that feedforward is universally best or that these
+gains are optimal. It shows that a known desired velocity can provide most of
+the motion command, leaving feedback to correct delay, load, and model error.
+The untuned integral gain also produces visible overshoot and slow unwinding,
+which will be the first tuning exercise.
