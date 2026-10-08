@@ -36,18 +36,19 @@ CONTROL_PANEL = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>SO-101 Controls Arcade</title>
 <style>
-body{font:15px system-ui;margin:0;background:#10141c;color:#eef3fb}main{max-width:780px;margin:auto;padding:24px}
+body{font:15px system-ui;margin:0;background:#10141c;color:#eef3fb}main{max-width:980px;margin:auto;padding:24px}
 h1{margin:0 0 4px}.sub{color:#9daabe;margin-bottom:22px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .panel{background:#19212d;border:1px solid #303c4c;border-radius:12px;padding:18px}.control{margin:14px 0}
 label{display:flex;justify-content:space-between;font-weight:600}input,select{width:100%;margin-top:8px}select{padding:8px;background:#10141c;color:#eef3fb;border:1px solid #435167;border-radius:6px}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.metric{background:#10141c;padding:14px;border-radius:8px}.value{font-size:24px;font-weight:700;display:block}.unit{color:#9daabe;font-size:12px}
-button{padding:11px 16px;border:0;border-radius:7px;font-weight:700;cursor:pointer;margin:8px 8px 0 0}.disturb{background:#f3a83b}.reset{background:#6da7ff}
+button{padding:10px 14px;border:0;border-radius:7px;font-weight:700;cursor:pointer;margin:8px 6px 0 0}.preset{background:#303c4c;color:#eef3fb}.disturb{background:#f3a83b}.reset{background:#6da7ff}
+canvas{width:100%;height:260px;background:#10141c;border-radius:8px;margin-top:14px}.status{min-height:42px;margin:14px 0 0;color:#d5dfed}
 @media(max-width:620px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}}
 </style></head><body><main><h1>SO-101 Controls Arcade</h1><div class="sub">Tune the outer loop while MuJoCo runs.</div>
-<div class="grid"><section class="panel"><div class="control"><label>Trajectory</label><select id="trajectory"><option value="periodic">Periodic</option><option value="step">Step sequence</option><option value="chirp">Frequency sweep</option></select></div>
+<div class="grid"><section class="panel"><div><strong>Controller presets</strong><br><button class="preset" data-preset="p">P</button><button class="preset" data-preset="pd">PD</button><button class="preset" data-preset="pid">PID</button><button class="preset" data-preset="ff">FF + PID</button></div><div class="control"><label>Trajectory</label><select id="trajectory"><option value="periodic">Periodic</option><option value="step">Step sequence</option><option value="chirp">Frequency sweep</option></select></div>
 <div id="sliders"></div><button class="disturb" id="disturb">Apply disturbance</button><button class="reset" id="reset">Reset experiment</button></section>
 <section class="panel"><div class="metrics"><div class="metric"><span class="value" id="rms">0.0</span><span class="unit">RMS error · mrad</span></div><div class="metric"><span class="value" id="sat">0.0</span><span class="unit">force saturation · %</span></div><div class="metric"><span class="value" id="err">0.0</span><span class="unit">current error · mrad</span></div></div>
-<p class="sub" style="margin-top:18px">Green trail: desired gripper path<br>Blue trail: actual gripper path</p></section></div></main>
+<p class="status" id="status">Collecting a fresh measurement window…</p><p class="sub">Metrics reset whenever controller settings change.</p></section></div><section class="panel" style="margin-top:16px"><strong>Shoulder position · last 5 seconds</strong><canvas id="chart"></canvas><div class="sub" style="margin:8px 0 0"><span style="color:#6ef08e">━━ desired</span>&nbsp;&nbsp;<span style="color:#6da7ff">━━ actual</span></div></section></main>
 <script>
 const specs=[['kp','Kp',0,15,.1],['ki','Ki',0,8,.05],['kd','Kd',0,1,.01],['ff','Feedforward',0,1.5,.05],['speed','Trajectory speed',.2,3,.1]];
 const sliders=document.getElementById('sliders');
@@ -56,11 +57,15 @@ async function sendSettings(){const body={trajectory:document.getElementById('tr
 for(const [id] of specs){document.getElementById(id).addEventListener('input',e=>{document.getElementById(id+'Value').textContent=e.target.value;sendSettings()})}
 document.getElementById('trajectory').addEventListener('change',sendSettings);
 for(const action of ['disturb','reset'])document.getElementById(action).onclick=()=>fetch('/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})});
-async function refresh(){try{const s=await(await fetch('/state')).json();for(const [id] of specs){const el=document.getElementById(id);if(document.activeElement!==el)el.value=s.settings[id];document.getElementById(id+'Value').textContent=Number(s.settings[id]).toFixed(id==='kp'||id==='speed'?1:2)}document.getElementById('trajectory').value=s.settings.trajectory;document.getElementById('rms').textContent=s.metrics.rms_mrad.toFixed(1);document.getElementById('sat').textContent=s.metrics.saturation_percent.toFixed(1);document.getElementById('err').textContent=s.metrics.current_error_mrad.toFixed(1)}catch(e){}setTimeout(refresh,200)}refresh();
+const presets={p:{kp:5,ki:0,kd:0,ff:0},pd:{kp:6,ki:0,kd:.18,ff:0},pid:{kp:5,ki:3,kd:.18,ff:0},ff:{kp:5,ki:2,kd:.18,ff:1}};
+for(const button of document.querySelectorAll('[data-preset]'))button.onclick=()=>{const p=presets[button.dataset.preset];for(const [key,value] of Object.entries(p)){document.getElementById(key).value=value;document.getElementById(key+'Value').textContent=value}sendSettings()};
+function drawChart(h){const c=document.getElementById('chart'),dpr=devicePixelRatio||1,w=c.clientWidth,hgt=c.clientHeight;c.width=w*dpr;c.height=hgt*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,w,hgt);if(!h.time.length)return;const all=h.desired.concat(h.actual),lo=Math.min(...all)-.03,hi=Math.max(...all)+.03;x.strokeStyle='#334153';x.lineWidth=1;for(let i=1;i<4;i++){const y=i*hgt/4;x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke()}function line(values,color,dash=[]){x.strokeStyle=color;x.lineWidth=2;x.setLineDash(dash);x.beginPath();values.forEach((v,i)=>{const px=i*w/Math.max(1,values.length-1),py=hgt-(v-lo)/(hi-lo)*hgt;i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();x.setLineDash([])}line(h.desired,'#6ef08e',[7,5]);line(h.actual,'#6da7ff')}
+function explain(m){if(m.saturation_percent>30)return 'The actuator is force-limited often. Try reducing speed or gains.';if(Math.abs(m.current_error_mrad)>50)return m.current_error_mrad>0?'The arm is behind the reference.':'The arm has moved ahead of the reference.';if(m.rms_mrad<20)return 'Tracking is tight. Increase speed or apply a disturbance to challenge it.';return 'Tracking error is visible; compare presets or tune one gain at a time.'}
+async function refresh(){try{const s=await(await fetch('/state')).json();for(const [id] of specs){const el=document.getElementById(id);if(document.activeElement!==el)el.value=s.settings[id];document.getElementById(id+'Value').textContent=Number(s.settings[id]).toFixed(id==='kp'||id==='speed'?1:2)}document.getElementById('trajectory').value=s.settings.trajectory;document.getElementById('rms').textContent=s.metrics.rms_mrad.toFixed(1);document.getElementById('sat').textContent=s.metrics.saturation_percent.toFixed(1);document.getElementById('err').textContent=s.metrics.current_error_mrad.toFixed(1);document.getElementById('status').textContent=explain(s.metrics);drawChart(s.history)}catch(e){}setTimeout(refresh,200)}refresh();
 </script></body></html>"""
 
 
-def start_control_server(settings, events, metrics, lock, port):
+def start_control_server(settings, events, metrics, history, lock, port):
     class Handler(BaseHTTPRequestHandler):
         def reply(self, code, body, content_type="application/json"):
             payload = body.encode()
@@ -72,7 +77,10 @@ def start_control_server(settings, events, metrics, lock, port):
                 self.reply(200, CONTROL_PANEL, "text/html; charset=utf-8")
             elif self.path == "/state":
                 with lock:
-                    self.reply(200, json.dumps({"settings": settings, "metrics": metrics}))
+                    history_payload = {key: list(values) for key, values in history.items()}
+                    self.reply(200, json.dumps({
+                        "settings": settings, "metrics": metrics, "history": history_payload,
+                    }))
             else:
                 self.reply(404, json.dumps({"error": "not found"}))
 
@@ -81,11 +89,13 @@ def start_control_server(settings, events, metrics, lock, port):
                 body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
                 with lock:
                     if self.path == "/settings":
+                        previous_trajectory = settings["trajectory"]
                         for key in ("kp", "ki", "kd", "ff", "speed"):
                             if key in body:
                                 settings[key] = max(0.0, float(body[key]))
                         if body.get("trajectory") in ("periodic", "step", "chirp"):
                             settings["trajectory"] = body["trajectory"]
+                        events["reset" if settings["trajectory"] != previous_trajectory else "retune"] = True
                     elif self.path == "/action" and body.get("action") in events:
                         events[body["action"]] = True
                 self.reply(200, json.dumps({"ok": True}))
@@ -152,10 +162,11 @@ def main():
         "kp": 5.0, "ki": 2.0, "kd": 0.18, "ff": 1.0,
         "speed": 1.0, "trajectory": "periodic",
     }
-    events = {"reset": False, "disturb": False}
+    events = {"reset": False, "disturb": False, "retune": False}
     metrics = {"rms_mrad": 0.0, "saturation_percent": 0.0, "current_error_mrad": 0.0}
+    history = {key: deque(maxlen=250) for key in ("time", "desired", "actual")}
     state_lock = threading.Lock()
-    server = start_control_server(settings, events, metrics, state_lock, args.port)
+    server = start_control_server(settings, events, metrics, history, state_lock, args.port)
     panel_url = f"http://127.0.0.1:{args.port}"
     print(f"Control panel: {panel_url}")
     if not args.no_browser:
@@ -177,6 +188,7 @@ def main():
         if key in increments:
             parameter, change = increments[key]
             settings[parameter] = max(0.0, settings[parameter] + change)
+            events["retune"] = True
         elif key == glfw.KEY_SPACE:
             events["disturb"] = True
         elif key == glfw.KEY_R:
@@ -217,8 +229,18 @@ def main():
             if events["reset"]:
                 controller, position_command = reset()
                 errors.clear(); saturations.clear(); actual_trace.clear(); desired_trace.clear()
+                with state_lock:
+                    for values in history.values():
+                        values.clear()
                 experiment_time = 0.0
                 events["reset"] = False
+            if events["retune"]:
+                controller.reset()
+                errors.clear(); saturations.clear()
+                with state_lock:
+                    for values in history.values():
+                        values.clear()
+                events["retune"] = False
 
             controller.kp = settings["kp"]
             controller.ki = settings["ki"]
@@ -251,6 +273,9 @@ def main():
                 metrics["rms_mrad"] = 1000.0 * float(np.sqrt(np.mean(np.square(errors))))
                 metrics["saturation_percent"] = 100.0 * float(np.mean(saturations))
                 metrics["current_error_mrad"] = 1000.0 * float(error)
+                history["time"].append(experiment_time)
+                history["desired"].append(float(desired_position))
+                history["actual"].append(float(data.qpos[qpos_id]))
             actual_trace.append(data.site("gripperframe").xpos.copy())
             desired_data.qpos[:] = data.qpos
             desired_data.qpos[qpos_id] = desired_position

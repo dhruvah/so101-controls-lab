@@ -114,3 +114,8 @@ The GUI offers periodic, step-sequence, and frequency-sweep trajectories. The
 step sequence exposes overshoot and settling behavior. The frequency sweep
 starts slowly and continuously increases its frequency, revealing where the
 closed-loop system can no longer track without large phase lag and saturation.
+
+Use the P, PD, PID, and FF + PID preset buttons before fine-tuning individual
+sliders. The live shoulder-position chart makes lag and overshoot visible, and
+the measurement window clears after each settings change so old behavior does
+not contaminate the new comparison.
